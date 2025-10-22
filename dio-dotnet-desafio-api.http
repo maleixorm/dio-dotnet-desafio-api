@@ -1,0 +1,6 @@
+@dio_dotnet_desafio_api_HostAddress = http://localhost:5191
+
+GET {{dio_dotnet_desafio_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
