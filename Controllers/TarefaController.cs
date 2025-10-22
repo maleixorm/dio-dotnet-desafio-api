@@ -24,25 +24,31 @@ namespace dio_dotnet_desafio_api.Controllers
         [HttpGet("{id}")]
         public IActionResult ObterPorId(int id)
         {
-            return Ok();
+            var tarefa = _context.Tarefas.Find(id);
+            if (tarefa == null) return NotFound();
+            return Ok(tarefa);
         }
 
         [HttpGet("ObterTodos")]
         public IActionResult ObterTodos()
         {
-            return Ok();
+            var tarefa = _context.Tarefas.ToList();
+            return Ok(tarefa);
         }
 
         [HttpGet("ObterPorTitulo")]
         public IActionResult ObterPorTitulo(string titulo)
         {
-            return Ok();
+            var tarefas = _context.Tarefas.Where(x => x.Titulo.Contains(titulo));
+            if (tarefas == null) return NotFound();
+            return Ok(tarefas);
         }
 
         [HttpGet("ObterPorData")]
         public IActionResult ObterPorData(DateTime data)
         {
             var tarefa = _context.Tarefas.Where(x => x.Data.Date == data.Date);
+            if (tarefa == null) return NotFound();
             return Ok(tarefa);
         }
 
@@ -56,8 +62,9 @@ namespace dio_dotnet_desafio_api.Controllers
         [HttpPost]
         public IActionResult Criar(Tarefa tarefa)
         {
-            if (tarefa.Data == DateTime.MinValue) return BadRequest(new { Erro = "A data da tarefa não pode ser vazia!" });
-
+            if (tarefa.Data == DateTime.MinValue) return BadRequest(new { Erro = "A data da tarefa não pode estar vazia!" });
+            _context.Add(tarefa);
+            _context.SaveChanges();
             return CreatedAtAction(nameof(ObterPorId), new { id = tarefa.Id }, tarefa);
         }
 
@@ -65,13 +72,16 @@ namespace dio_dotnet_desafio_api.Controllers
         public IActionResult Atualizar(int id, Tarefa tarefa)
         {
             var tarefaBanco = _context.Tarefas.Find(id);
+            if (tarefaBanco == null) return NotFound();
+            if (tarefa.Data == DateTime.MinValue) return BadRequest(new { Erro = "A data da tarefa não pode ser vazia" });
 
-            if (tarefaBanco == null)
-                return NotFound();
+            tarefaBanco.Titulo = tarefa.Titulo;
+            tarefaBanco.Descricao = tarefa.Descricao;
+            tarefaBanco.Data = tarefa.Data;
+            tarefaBanco.Status = tarefa.Status;
 
-            if (tarefa.Data == DateTime.MinValue)
-                return BadRequest(new { Erro = "A data da tarefa não pode ser vazia" });
-
+            _context.Tarefas.Update(tarefaBanco);
+            _context.SaveChanges();
             
             return Ok();
         }
@@ -80,11 +90,9 @@ namespace dio_dotnet_desafio_api.Controllers
         public IActionResult Deletar(int id)
         {
             var tarefaBanco = _context.Tarefas.Find(id);
-
-            if (tarefaBanco == null)
-                return NotFound();
-
-            
+            if (tarefaBanco == null) return NotFound();
+            _context.Tarefas.Remove(tarefaBanco);
+            _context.SaveChanges();
             return NoContent();
         }
     }
